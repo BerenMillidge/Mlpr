@@ -1,7 +1,5 @@
 #Linear regression experiments and implementation to check I actually understand what's going on and can implement in code.
 
-# Yeah, I'm feeling pretty tired and frazzled today, which isn't a good sign. oh well, so it goes!
-
 from __future__ import division
 import numpy as np
 import math
@@ -45,12 +43,14 @@ for i in x:
 #Do array massaging to get them into the correct shape
 y_quad = np.array(y_quad) # turn list into array
 y_quad = np.reshape(y_quad, [len(y_quad),1]) # turn from vector into 2D matrix
+y_cube = np.array(y_cube) # turn list into array
+y_cube = np.reshape(y_cube, [len(y_cube),1]) # turn from vector into 2D matrix
 x = np.reshape(x, [len(x), 1]) # turn from vector into 2D matrix
 
 #add biases to the design matrix
-b = np.ones(len(x))
-b = np.reshape(b, [len(b),1])
-x = np.concatenate((b,x),1)
+#b = np.ones(len(x))
+#b = np.reshape(b, [len(b),1])
+#x = np.concatenate((b,x),1)
 
 def solve_linreg(x,y):
 	#solve using inbuilt python functions
@@ -86,8 +86,66 @@ def solve_gradient_descent(x,y, epochs = 100, lrate = 0.1):
 		w_grad = w_grad - lrate*grad
 	return w_grad
 
-print solve_gradient_descent(x,y_quad)
+#print solve_gradient_descent(x,y_quad)
 
-# I have no idea why this still doesn't seem to work, but oh well. We're running out of time and we actually need to learn the maths. We haven't even done basis functoin expansions at all. Let's pencil that in for tomorrow or whatever.
 
+def basis_function_expansion(X,N):
+	#we'll just have this as a polynomial expansion. We can expand it to arbitrary functions later, if we want. N is the order of the polynomial and must be >=1
+	#we're assuming the input x is one dimensional simple list of numbers
+	phi = []
+	for xs in X:
+		xs = int(xs)	# we have to cast to int else weitrd stuff happens with the arrays
+		row = []
+		for i in xrange(N+1):
+			row.append(xs**i)
+		phi.append(row)
+	phi = np.array(phi)
+	print phi[1]
+	print phi.shape
+	return phi
+	#this should work
+
+
+X = basis_function_expansion(x, 5)
+w =  solve_normal_equations(X,y_cube)
+
+#Now let's just implement the plotting functionality!
+def predict(x,w):
+	#for an x and a weight vector, this gets our linear regression predictions. This is easy
+	ys = []
+	for xs in x:
+		ys.append(np.dot(w.T,xs)) #I love how easy linear regression is to calculate
+	return np.array(ys)
+
+preds =  predict(X,w)
+
+wlin = solve_normal_equations(x,y_cube)
+preds_lin = predict(x,wlin)
+
+print type(y_cube)
+y_cube = np.array(y_cube)
+print y_cube.shape
+
+print type(preds_lin)
+print type(preds)
+
+#okay, now we've got everything we need imho
+def plot_lines(x,true,preds_linear, preds_basis):
+	fig = plt.figure()
+	ax = fig.add_subplot(1,1,1)
+	print x.shape, true.shape, preds_linear.shape, preds_basis.shape
+	ax.plot(x,true, label="True function")
+	ax.plot(x,preds_linear, label = "Standard linear regression line")
+	ax.plot(x,preds_basis, label= "Basis function regression line")
+	ax.set_xlabel("x")
+	ax.set_ylabel("y")
+	ax.legend()
+	fig.tight_layout()
+	plt.show()
+	return fig
+
+plot_lines(x,y_cube,preds_lin, preds)
+
+
+##.// huh. well that's interesting. this doesn't seem to work AT ALL! Which I'm pretty not sure about. I'll have to work on this tomorrow to see where the bug is. At least we gotthe plotting functionality to work though! let's do some more theory now.
 
